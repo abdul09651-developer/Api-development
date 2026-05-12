@@ -11,8 +11,17 @@ http.createServer((req, res) => {
     console.log(parsedUrl);
     let products = fs.readFileSync("./products.json", "utf-8");
 
-    if (parsedUrl.pathname === "/products" && req.method === "GET" && parsedUrl.query.id == undefined) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+
+    if (req.method === "OPTIONS") {
+        return res.end();
+    }
+    else if (parsedUrl.pathname === "/products" && req.method === "GET" && parsedUrl.query.id == undefined) {
+
         res.end(products);
+
     }
     else if (parsedUrl.pathname === "/products" && req.method === "GET" && parsedUrl.query.id != undefined) {
 
@@ -41,12 +50,68 @@ http.createServer((req, res) => {
 
             productArray.push(newProduct);
 
-            fs.writeFile("./products.json", JSON.stringify(productArray), (err)=> {
-                if(err==null){
-                    res.end(JSON.stringify({message: "New Product added successfully"}));
+            fs.writeFile("./products.json", JSON.stringify(productArray), (err) => {
+                if (err == null) {
+                    res.end(JSON.stringify({ message: "New Product added successfully" }));
                 }
             })
         })
     }
+    else if (parsedUrl.pathname === "/products" && req.method === "PUT") {
 
-    }).listen(3000);
+        let product = "";
+
+        req.on("data", (chunk) => {
+            product += chunk;
+        });
+
+        req.on("end", () => {
+            let productArray = JSON.parse(products);
+            let productOBJ = JSON.parse(product);
+
+            let index = productArray.findIndex((product) => {
+                return product.id == parsedUrl.query.id;
+            });
+
+            if (index != -1) {
+                productArray[index] = productOBJ;
+
+                fs.writeFile("./products.json", JSON.stringify(productArray), (err) => {
+                    if (err == null) {
+                        res.end(JSON.stringify({ message: "Product updated successfully" }));
+                    }
+                    else {
+                        res.end(JSON.stringify({ message: "Error updating product" }));
+                    }
+                });
+            }
+            else {
+                res.end(JSON.stringify({ message: "Product not found" }));
+            }
+        });
+    }
+    else if (parsedUrl.pathname === "/products" && req.method === "DELETE") {
+        let productArray = JSON.parse(products);
+
+        let index = productArray.findIndex((product) => {
+            return product.id == parsedUrl.query.id;
+        });
+
+        if (index != -1) {
+            productArray.splice(index, 1);
+
+            fs.writeFile("./products.json", JSON.stringify(productArray), (err) => {
+                if (err == null) {
+                    res.end(JSON.stringify({ message: "Product deleted successfully" }));
+                }
+                else {
+                    res.end(JSON.stringify({ message: "Error deleting product" }));
+                }
+            });
+        }
+        else {
+            res.end(JSON.stringify({ message: "Product not found" }));
+        }
+    }
+
+}).listen(3000);
