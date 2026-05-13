@@ -1,0 +1,15 @@
+  {
+  "name": "04_db_work",
+  "version": "1.0.0",
+  "description": "Database connection project",
+  "license": "ISC",
+  "author": "Abdul Hannan",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "mongoose": "^9.6.2"
+  }
+}
